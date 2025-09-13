@@ -1,26 +1,25 @@
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { ChartCard } from "./ChartCard";
 
-const data = [
-  { month: "Oct 22", actualHPI: 85, predictedHPI: 83 },
-  { month: "Jan 23", actualHPI: 78, predictedHPI: 80 },
-  { month: "Apr 23", actualHPI: 82, predictedHPI: 81 },
-  { month: "Jul 23", actualHPI: 71, predictedHPI: 73 },
-  { month: "Oct 23", actualHPI: 69, predictedHPI: 70 },
-  { month: "Jan 24", actualHPI: 73, predictedHPI: 72 },
-  { month: "Apr 24", actualHPI: 68, predictedHPI: 69 },
+const historicalData = [
+  { year: "2019", current: 95, previous: 92 },
+  { year: "2020", current: 88, previous: 95 },
+  { year: "2021", current: 82, previous: 88 },
+  { year: "2022", current: 79, previous: 82 },
+  { year: "2023", current: 75, previous: 79 },
+  { year: "2024", current: 72, previous: 75 },
 ];
 
-export function PredictiveForecast() {
+export function HistoricalData() {
   return (
-    <ChartCard title="Predictive HPI Forecast">
+    <ChartCard title="Historical Data Comparison">
       <div className="text-xs text-muted-foreground mb-4">
-        Actual HPI vs Predicted heavy metal pollution index comparison
+        Year-over-year HMPI comparison showing improvement trends
       </div>
       <ResponsiveContainer width="100%" height={200}>
-        <LineChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+        <LineChart data={historicalData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
           <XAxis 
-            dataKey="month" 
+            dataKey="year" 
             axisLine={false}
             tickLine={false}
             tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
@@ -29,33 +28,33 @@ export function PredictiveForecast() {
             axisLine={false}
             tickLine={false}
             tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
-            domain={[60, 90]}
+            domain={[70, 100]}
           />
           <Line 
             type="monotone" 
-            dataKey="actualHPI" 
+            dataKey="current" 
             stroke="hsl(var(--chart-1))" 
             strokeWidth={2}
             dot={{ fill: 'hsl(var(--chart-1))', strokeWidth: 2, r: 4 }}
           />
           <Line 
             type="monotone" 
-            dataKey="predictedHPI" 
+            dataKey="previous" 
             stroke="hsl(var(--chart-2))" 
             strokeWidth={2}
-            strokeDasharray="5 5"
-            dot={{ fill: 'hsl(var(--chart-2))', strokeWidth: 2, r: 4 }}
+            strokeDasharray="3 3"
+            dot={{ fill: 'hsl(var(--chart-2))', strokeWidth: 2, r: 3 }}
           />
         </LineChart>
       </ResponsiveContainer>
       <div className="flex items-center gap-4 mt-4 text-xs">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded bg-chart-1" />
-          <span className="text-muted-foreground">Actual HPI</span>
+          <span className="text-muted-foreground">Current Year</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded bg-chart-2" />
-          <span className="text-muted-foreground">Predicted HPI</span>
+          <span className="text-muted-foreground">Previous Year</span>
         </div>
       </div>
     </ChartCard>

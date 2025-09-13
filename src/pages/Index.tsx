@@ -7,6 +7,9 @@ import { SampleDistribution } from "@/components/dashboard/SampleDistribution";
 import { PredictiveForecast } from "@/components/dashboard/PredictiveForecast";
 import { AlertsPanel } from "@/components/dashboard/AlertsPanel";
 import { ContaminationTable } from "@/components/dashboard/ContaminationTable";
+import { HistoricalData } from "@/components/dashboard/HistoricalData";
+import { HPITrend } from "@/components/dashboard/HPITrend";
+import { KeyFindings } from "@/components/dashboard/KeyFindings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Index = () => {
@@ -21,7 +24,7 @@ const Index = () => {
         {/* Main Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <MetricCard
-            title="Current AQI"
+            title="Avg HMPI"
             value="72.5"
             subtitle="+0.3% from last month"
             status="safe"
@@ -93,10 +96,17 @@ const Index = () => {
           <ContaminationTable />
         </div>
 
+        {/* Middle Row - New Components */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <HistoricalData />
+          <HPITrend />
+        </div>
+
         {/* Bottom Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <PredictiveForecast />
           <AlertsPanel />
+          <KeyFindings />
         </div>
       </main>
     </div>

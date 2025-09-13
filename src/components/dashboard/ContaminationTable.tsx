@@ -23,7 +23,7 @@ export function ContaminationTable() {
         <div className="space-y-3">
           <div className="grid grid-cols-4 gap-4 text-xs font-medium text-muted-foreground pb-2 border-b border-border">
             <div>Region</div>
-            <div>Arsenic AQI</div>
+            <div>Arsenic HMPI</div>
             <div>Pollutant</div>
             <div>Status</div>
           </div>

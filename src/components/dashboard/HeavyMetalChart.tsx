@@ -2,20 +2,20 @@ import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { ChartCard } from "./ChartCard";
 
 const data = [
-  { name: "Arsenic", safe: 45, critical: 15 },
-  { name: "Lead", safe: 60, critical: 25 },
-  { name: "Mercury", safe: 80, critical: 10 },
-  { name: "Cadmium", safe: 35, critical: 30 },
-  { name: "Chromium", safe: 70, critical: 20 },
-  { name: "Iron", safe: 55, critical: 35 },
-  { name: "Copper", safe: 65, critical: 15 },
+  { name: "Arsenic", concentration: 8.5, bisLimit: 10 },
+  { name: "Lead", concentration: 12.3, bisLimit: 10 },
+  { name: "Mercury", concentration: 0.8, bisLimit: 1 },
+  { name: "Cadmium", concentration: 2.1, bisLimit: 3 },
+  { name: "Chromium", concentration: 45.2, bisLimit: 50 },
+  { name: "Iron", concentration: 280, bisLimit: 300 },
+  { name: "Copper", concentration: 950, bisLimit: 1000 },
 ];
 
 export function HeavyMetalChart() {
   return (
     <ChartCard title="Heavy Metal Concentrations">
       <div className="text-xs text-muted-foreground mb-4">
-        Average levels of heavy metals across sampling locations
+        Concentration vs BIS limits in micrograms per liter (μg/L)
       </div>
       <ResponsiveContainer width="100%" height={200}>
         <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
@@ -26,18 +26,18 @@ export function HeavyMetalChart() {
             tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
           />
           <YAxis hide />
-          <Bar dataKey="safe" fill="hsl(var(--chart-1))" radius={[2, 2, 0, 0]} />
-          <Bar dataKey="critical" fill="hsl(var(--chart-3))" radius={[2, 2, 0, 0]} />
+          <Bar dataKey="concentration" fill="hsl(var(--chart-1))" radius={[2, 2, 0, 0]} />
+          <Bar dataKey="bisLimit" fill="hsl(var(--chart-3))" radius={[2, 2, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
       <div className="flex items-center gap-4 mt-4 text-xs">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded bg-chart-1" />
-          <span className="text-muted-foreground">Safe Levels</span>
+          <span className="text-muted-foreground">Current Concentration (μg/L)</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded bg-chart-3" />
-          <span className="text-muted-foreground">Critical Levels</span>
+          <span className="text-muted-foreground">BIS Limit (μg/L)</span>
         </div>
       </div>
     </ChartCard>
