@@ -23,6 +23,11 @@ const Index = () => {
         <SearchBar />
         <FilterBar />
         
+        {/* Data Upload Portal */}
+        <div className="mb-6">
+          <FileUpload />
+        </div>
+        
         {/* Main Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
           <MetricCard
@@ -57,7 +62,6 @@ const Index = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <HeavyMetalChart />
           <SampleDistribution />
-          <FileUpload />
           
           {/* India Water Quality Hotspots */}
           <Card className="bg-card border-border">

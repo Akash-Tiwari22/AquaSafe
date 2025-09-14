@@ -24,7 +24,7 @@ const navigation = [
 
 export function Sidebar({ className }: SidebarProps) {
   return (
-    <div className={cn("flex h-full w-64 flex-col bg-card border-r border-border", className)}>
+    <div className={cn("flex h-screen w-64 flex-col bg-card border-r border-border", className)}>
       {/* Logo */}
       <div className="flex items-center gap-2 p-6 border-b border-border">
         <div className="flex items-center justify-center w-8 h-8 bg-primary rounded-lg">

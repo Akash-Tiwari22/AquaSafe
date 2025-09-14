@@ -18,14 +18,20 @@ export function HeavyMetalChart() {
         Concentration vs BIS limits in micrograms per liter (μg/L)
       </div>
       <ResponsiveContainer width="100%" height={200}>
-        <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+        <BarChart data={data} margin={{ top: 20, right: 30, left: 60, bottom: 40 }}>
           <XAxis 
             dataKey="name" 
             axisLine={false}
             tickLine={false}
             tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+            label={{ value: 'Heavy Metals', position: 'insideBottom', offset: -5, style: { textAnchor: 'middle', fill: 'hsl(var(--muted-foreground))', fontSize: '10px' } }}
           />
-          <YAxis hide />
+          <YAxis 
+            axisLine={false}
+            tickLine={false}
+            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+            label={{ value: 'Concentration (μg/L)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: 'hsl(var(--muted-foreground))', fontSize: '10px' } }}
+          />
           <Bar dataKey="concentration" fill="hsl(var(--chart-1))" radius={[2, 2, 0, 0]} />
           <Bar dataKey="bisLimit" fill="hsl(var(--chart-3))" radius={[2, 2, 0, 0]} />
         </BarChart>
