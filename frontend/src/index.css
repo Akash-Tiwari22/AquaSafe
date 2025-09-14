@@ -1,0 +1,292 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* AquaSafe Dashboard Design System
+Dark theme with teal/green accents for water quality monitoring
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 210 100% 92%; /* Darker Light Blue */
+    --foreground: 210 30% 20%; /* Darker Blue for text */
+
+    --card: 0 0% 100%; /* White #FFFFFF */
+    --card-foreground: 210 30% 20%; /* Darker Blue for card text */
+
+    --popover: 0 0% 100%; /* White #FFFFFF */
+    --popover-foreground: 210 30% 20%; /* Darker Blue for popover text */
+
+    --primary: 210 100% 55%; /* Darker Medium Blue */
+    --primary-foreground: 0 0% 100%; /* White */
+
+    --secondary: 210 100% 92%; /* Darker Light Blue */
+    --secondary-foreground: 210 30% 20%; /* Darker Blue */
+
+    --muted: 0 0% 50%; /* Darker Gray for secondary text */
+    --muted-foreground: 0 0% 40%;
+
+    --accent: 210 100% 55%; /* Darker Medium Blue */
+    --accent-foreground: 0 0% 100%; /* White */
+
+    --destructive: 0 100% 45%; /* Darker Red for Critical status */
+    --destructive-foreground: 0 0% 100%;
+
+    --warning: 30 100% 45%; /* Darker Orange for Unsafe status */
+    --warning-foreground: 0 0% 100%;
+
+    --success: 142 76% 45%; /* Darker Green for Safe status */
+    --success-foreground: 0 0% 100%;
+
+    --border: 0 0% 70%; /* Darker Gray for borders */
+    --input: 210 100% 90%; /* Darker Light Blue for input backgrounds */
+    --ring: 210 100% 55%; /* Darker Medium Blue */
+
+    --radius: 0.75rem;
+
+    --chart-1: 210 100% 55%; /* Darker Medium Blue */
+    --chart-2: 142 76% 45%; /* Darker Green */
+    --chart-3: 30 100% 45%; /* Darker Orange */
+    --chart-4: 0 100% 45%; /* Darker Red */
+    --chart-5: 190 100% 45%; /* Darker Teal Blue */
+
+    --sidebar-background: 0 0% 100%; /* White #FFFFFF */
+    --sidebar-foreground: 210 30% 20%; /* Darker Blue */
+    --sidebar-primary: 210 100% 55%; /* Darker Medium Blue */
+    --sidebar-primary-foreground: 0 0% 100%; /* White */
+    --sidebar-accent: 210 100% 92%; /* Darker Light Blue */
+    --sidebar-accent-foreground: 210 30% 20%; /* Darker Blue */
+    --sidebar-border: 0 0% 70%; /* Darker Gray */
+    --sidebar-ring: 210 100% 55%; /* Darker Medium Blue */
+
+    /* Custom color variables with darker shades */
+    --light-blue-bg: 210 100% 92%; /* Darker Light Blue for page background */
+    --light-blue-secondary: 210 100% 88%; /* Darker Light Blue for drag areas and sub-cards */
+    --medium-blue: 210 100% 55%; /* Darker Medium Blue for primary buttons */
+    --dark-blue-text: 210 30% 20%; /* Darker Blue for logo and primary text */
+    --gray-text: 0 0% 50%; /* Darker Gray for secondary text */
+    --gray-border: 0 0% 70%; /* Darker Gray for borders */
+    --safe-green: 142 76% 45%; /* Darker Green for Safe status */
+    --unsafe-orange: 30 100% 45%; /* Darker Orange for Unsafe status */
+    --critical-red: 0 100% 45%; /* Darker Red for Critical status */
+  }
+
+  .dark {
+    --background: 0 0% 9%;
+    --foreground: 0 0% 98%;
+
+    --card: 0 0% 9%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 0 0% 9%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 214 100% 50%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 0 0% 14%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 0 0% 14%;
+    --muted-foreground: 0 0% 63%;
+
+    --accent: 214 100% 50%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 98%;
+
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 98%;
+
+    --border: 0 0% 14%;
+    --input: 0 0% 14%;
+    --ring: 214 100% 50%;
+    --sidebar-background: 0 0% 9%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 214 100% 50%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 0 0% 14%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 14%;
+    --sidebar-ring: 214 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  /* Enhanced card styling for better contrast */
+  .card-enhanced {
+    @apply bg-white border border-gray-200 shadow-sm;
+    background: hsl(0 0% 100%);
+  }
+  
+  /* High contrast metric cards */
+  .metric-card-primary {
+    @apply bg-white border border-blue-200 shadow-sm;
+  }
+  
+  .metric-card-success {
+    @apply bg-white border border-green-200 shadow-sm;
+  }
+  
+  .metric-card-warning {
+    @apply bg-white border border-orange-200 shadow-sm;
+  }
+  
+  .metric-card-destructive {
+    @apply bg-white border border-red-200 shadow-sm;
+  }
+  
+  /* Enhanced button styling */
+  .btn-primary-enhanced {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm hover:shadow-md;
+  }
+  
+  /* Chart color enhancements */
+  .chart-teal {
+    @apply text-chart-1;
+    color: hsl(214 100% 50%);
+  }
+  
+  .chart-green {
+    @apply text-chart-2;
+    color: hsl(142 76% 36%);
+  }
+  
+  .chart-orange {
+    @apply text-chart-3;
+    color: hsl(38 92% 50%);
+  }
+  
+  .chart-red {
+    @apply text-chart-4;
+    color: hsl(0 84% 60%);
+  }
+  
+  /* Sidebar enhancements */
+  .sidebar-item-active {
+    @apply bg-primary text-primary-foreground shadow-sm;
+  }
+  
+  /* Enhanced text contrast */
+  .text-high-contrast {
+    @apply text-foreground;
+    color: hsl(0 0% 9%);
+  }
+  
+  .text-muted-high-contrast {
+    @apply text-muted-foreground;
+    color: hsl(0 0% 45%);
+  }
+
+  /* Specific color classes with darker shades */
+  .bg-light-blue {
+    background-color: hsl(210 100% 92%); /* Darker Light Blue */
+  }
+  
+  .bg-light-blue-secondary {
+    background-color: hsl(210 100% 88%); /* Darker Light Blue for drag areas and sub-cards */
+  }
+  
+  .text-dark-blue {
+    color: hsl(210 30% 20%); /* Darker Blue for logo and primary text */
+  }
+  
+  .text-gray-secondary {
+    color: hsl(0 0% 50%); /* Darker Gray for secondary text */
+  }
+  
+  .text-teal-blue {
+    color: hsl(190 100% 45%); /* Darker Teal Blue for insight icons */
+  }
+  
+  .bg-teal-blue {
+    background-color: hsl(190 100% 45%); /* Darker Teal Blue */
+  }
+  
+  .border-gray-secondary {
+    border-color: hsl(0 0% 70%); /* Darker Gray for borders */
+  }
+  
+  /* Status indicator colors with darker shades */
+  .bg-safe {
+    background-color: hsl(142 76% 45%); /* Darker Green for Safe status */
+  }
+  
+  .bg-unsafe {
+    background-color: hsl(30 100% 45%); /* Darker Orange for Unsafe status */
+  }
+  
+  .bg-critical {
+    background-color: hsl(0 100% 45%); /* Darker Red for Critical status */
+  }
+  
+  .text-safe {
+    color: hsl(142 76% 45%); /* Darker Green for Safe status */
+  }
+  
+  .text-unsafe {
+    color: hsl(30 100% 45%); /* Darker Orange for Unsafe status */
+  }
+  
+  .text-critical {
+    color: hsl(0 100% 45%); /* Darker Red for Critical status */
+  }
+}
+
+/* Map component custom styles */
+.leaflet-container {
+  font-family: inherit;
+  border-radius: 0.5rem;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.leaflet-popup-content {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.leaflet-popup-tip {
+  background: white;
+}
+
+.custom-div-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Map legend and controls styling */
+.leaflet-control-zoom a {
+  background-color: hsl(0 0% 100%);
+  border: 1px solid hsl(0 0% 70%);
+  color: hsl(210 30% 20%);
+}
+
+.leaflet-control-zoom a:hover {
+  background-color: hsl(210 100% 55%);
+  color: hsl(0 0% 100%);
+}
+
+.leaflet-control-attribution {
+  background-color: rgba(255, 255, 255, 0.8);
+  color: hsl(0 0% 50%);
+  font-size: 11px;
+}
