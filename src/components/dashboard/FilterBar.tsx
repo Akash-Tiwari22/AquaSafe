@@ -18,7 +18,7 @@ export function FilterBar() {
           <Filter className="w-4 h-4 text-muted-foreground" />
           <span className="text-foreground">Index Selection</span>
           <Button variant="outline" size="sm" className="h-8">
-            AQI (Heavy Metal Pollution Index)
+            HMPI (Heavy Metal Pollution Index)
           </Button>
         </div>
         

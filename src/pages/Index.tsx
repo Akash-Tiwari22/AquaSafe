@@ -10,6 +10,8 @@ import { ContaminationTable } from "@/components/dashboard/ContaminationTable";
 import { HistoricalData } from "@/components/dashboard/HistoricalData";
 import { HPITrend } from "@/components/dashboard/HPITrend";
 import { KeyFindings } from "@/components/dashboard/KeyFindings";
+import { FileUpload } from "@/components/dashboard/FileUpload";
+import { MetalConcentrationCards } from "@/components/dashboard/MetalConcentrationCards";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Index = () => {
@@ -22,7 +24,7 @@ const Index = () => {
         <FilterBar />
         
         {/* Main Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
           <MetricCard
             title="Avg HMPI"
             value="72.5"
@@ -40,23 +42,22 @@ const Index = () => {
           <MetricCard
             title="Unsafe/Critical"
             value="30%"
-            subtitle="PM"
+            subtitle="Critical"
             status="warning"
             description="Samples exceeding permissible limits"
           />
-          <MetricCard
-            title="Data Stream Status"
-            value="05:37:59"
-            subtitle="PM"
-            status="safe"
-            description="Live feed from monitoring stations"
-          />
+        </div>
+
+        {/* Metal Concentration Cards */}
+        <div className="mb-6">
+          <MetalConcentrationCards />
         </div>
 
         {/* Charts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <HeavyMetalChart />
           <SampleDistribution />
+          <FileUpload />
           
           {/* India Water Quality Hotspots */}
           <Card className="bg-card border-border">
