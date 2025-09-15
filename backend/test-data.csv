@@ -1,0 +1,4 @@
+date,location,latitude,longitude,pH,temperature,turbidity,totalDissolvedSolids,electricalConductivity,dissolvedOxygen,biochemicalOxygenDemand,chemicalOxygenDemand,arsenic,lead,mercury,cadmium,chromium,nickel,copper,zinc,iron,manganese,nitrate,nitrite,phosphate,ammonia,totalColiforms,fecalColiforms,eColi
+2024-01-01,Sample Site 1,28.6139,77.2090,7.0,25,2.0,200,500,8.0,2.0,5.0,0.005,0.005,0.0005,0.001,0.025,0.01,0.5,1.5,0.15,0.05,22.5,1.5,0.05,0.25,0,0,0
+2024-01-02,Sample Site 2,28.6140,77.2091,7.2,26,2.5,250,550,7.5,2.5,6.0,0.008,0.006,0.0008,0.002,0.030,0.012,0.6,1.6,0.18,0.06,25.0,1.8,0.06,0.30,0,0,0
+2024-01-03,Sample Site 3,28.6141,77.2092,6.8,24,1.8,180,480,8.5,1.8,4.5,0.003,0.004,0.0003,0.0008,0.020,0.008,0.4,1.3,0.12,0.04,20.0,1.2,0.04,0.20,0,0,0

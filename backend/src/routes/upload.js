@@ -12,6 +12,98 @@ import path from 'path';
 
 const router = express.Router();
 
+// @route   POST /api/upload/water-quality-public
+// @desc    Upload and process water quality data file (public access for testing)
+// @access  Public
+router.post('/water-quality-public', uploadSingle('file'), asyncHandler(async (req, res) => {
+  const { dataSource = 'uploaded' } = req.body;
+  const file = req.file;
+  
+  try {
+    console.log('Processing file:', file.originalname, 'Type:', file.mimetype);
+    
+    // Process the uploaded file
+    const processedData = await processFile(file.path, file.mimetype.split('/')[1]);
+    
+    console.log('Processed data length:', processedData ? processedData.length : 'null');
+    
+    if (!processedData || processedData.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No valid data found in the uploaded file'
+      });
+    }
+    
+    // Validate each data point
+    const validationErrors = [];
+    const validData = [];
+    
+    processedData.forEach((data, index) => {
+      const validation = validateWaterQualityData(data);
+      if (!validation.isValid) {
+        validationErrors.push({
+          record: index + 1,
+          errors: validation.errors
+        });
+      } else {
+        validData.push(data);
+      }
+    });
+    
+    if (validData.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No valid data points found in the file',
+        errors: validationErrors
+      });
+    }
+    
+    // Perform comprehensive analysis
+    const analysis = performComprehensiveAnalysis(validData);
+    
+    // Clean up uploaded file
+    fs.unlinkSync(file.path);
+    
+    logFileOperation('process_complete_public', file.originalname, file.size, null, true, {
+      recordCount: validData.length,
+      analysisResults: analysis.summary
+    });
+    
+    res.json({
+      success: true,
+      message: 'File processed successfully',
+      data: {
+        fileName: file.originalname,
+        totalRecords: processedData.length,
+        validRecords: validData.length,
+        invalidRecords: validationErrors.length,
+        analysis: analysis.summary,
+        validationErrors: validationErrors.length > 0 ? validationErrors : undefined
+      }
+    });
+    
+  } catch (error) {
+    console.error('Upload processing error:', error);
+    
+    // Clean up file on error
+    if (file && fs.existsSync(file.path)) {
+      fs.unlinkSync(file.path);
+    }
+    
+    logFileOperation('process_failed_public', file?.originalname || 'unknown', file?.size || 0, null, false, {
+      error: error.message,
+      stack: error.stack
+    });
+    
+    // Return error response instead of throwing
+    return res.status(500).json({
+      success: false,
+      message: 'File processing failed',
+      error: error.message
+    });
+  }
+}));
+
 // @route   POST /api/upload/water-quality
 // @desc    Upload and process water quality data file
 // @access  Private

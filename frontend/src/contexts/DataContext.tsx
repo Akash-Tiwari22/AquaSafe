@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-interface WaterQualityData {
+export interface WaterQualityData {
   avgHMPI: number;
   safeQuality: number;
   unsafeCritical: number;

@@ -2,15 +2,52 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Upload, Download, BarChart3, CheckCircle, Clock, FileText, HelpCircle, Search, Calendar, Filter, MapPin } from "lucide-react";
+import { Upload, Download, BarChart3, CheckCircle, Clock, FileText, HelpCircle, Search, Calendar, Filter, AlertTriangle, XCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import WorldMap from "@/components/maps/WorldMap";
+import { useData } from "@/contexts/DataContext";
+import { apiService, type WaterQualityData } from "@/services/api";
 
 export function PrimaryPage() {
   const [dragActive, setDragActive] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { getCurrentData, currentView, setUploadedData, setCurrentView } = useData();
+  const currentData = getCurrentData();
+
+  // Function to determine water safety status based on HMPI
+  const getWaterSafetyStatus = (hmpi: number) => {
+    if (hmpi >= 80) {
+      return {
+        status: "Critical",
+        color: "text-destructive",
+        bgColor: "bg-destructive",
+        icon: XCircle,
+        description: "Water quality is critically unsafe with high heavy metal contamination"
+      };
+    } else if (hmpi >= 60) {
+      return {
+        status: "Unsafe",
+        color: "text-warning",
+        bgColor: "bg-warning",
+        icon: AlertTriangle,
+        description: "Water quality is unsafe with elevated heavy metal levels"
+      };
+    } else {
+      return {
+        status: "Safe",
+        color: "text-safe",
+        bgColor: "bg-safe",
+        icon: CheckCircle,
+        description: "Water quality is safe with acceptable heavy metal levels"
+      };
+    }
+  };
+
+  const waterStatus = getWaterSafetyStatus(currentData.avgHMPI);
+  const StatusIcon = waterStatus.icon;
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -26,31 +63,80 @@ export function PrimaryPage() {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    handleFileUpload();
+    
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      handleFileUpload(files[0]);
+    }
   };
 
-  const handleFileUpload = () => {
+  const handleFileUpload = async (file: File) => {
     setIsProcessing(true);
     setProgress(0);
+    setUploadError(null);
     
-    // Simulate file processing
-    const interval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsProcessing(false);
-          return 100;
-        }
-        return prev + 2;
-      });
-    }, 100);
+    try {
+      // Simulate progress updates
+      const progressInterval = setInterval(() => {
+        setProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 200);
+
+      // Upload file to backend
+      const response = await apiService.uploadWaterQualityFile(file);
+      
+      clearInterval(progressInterval);
+      setProgress(100);
+      
+      // Convert backend response to frontend format
+      const waterQualityData: WaterQualityData = {
+        avgHMPI: response.data.analysis.avgHMPI,
+        safeQuality: response.data.analysis.safePercentage,
+        unsafeCritical: ((response.data.analysis.unsafeSamples + response.data.analysis.criticalSamples) / response.data.analysis.totalSamples) * 100,
+        metalConcentrations: {
+          arsenic: 0.01, // These would come from the actual analysis
+          lead: 0.005,
+          mercury: 0.001,
+          cadmium: 0.002,
+          chromium: 0.05
+        },
+        sampleCount: response.data.analysis.totalSamples,
+        lastUpdated: new Date().toISOString(),
+        source: 'uploaded'
+      };
+
+      setUploadedData(waterQualityData);
+      setCurrentView('uploaded');
+      setUploadedFileName(response.data.fileName);
+      
+      setTimeout(() => {
+        setIsProcessing(false);
+        setProgress(0);
+      }, 1000);
+      
+    } catch (error) {
+      console.error('File upload failed:', error);
+      setUploadError(error instanceof Error ? error.message : 'File upload failed');
+      setIsProcessing(false);
+      setProgress(0);
+    }
   };
 
   const handleBrowseFiles = () => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.csv,.xlsx';
-    input.onchange = handleFileUpload;
+    input.onchange = (e) => {
+      const files = (e.target as HTMLInputElement).files;
+      if (files && files.length > 0) {
+        handleFileUpload(files[0]);
+      }
+    };
     input.click();
   };
 
@@ -153,6 +239,24 @@ export function PrimaryPage() {
               <p className="text-sm text-muted-foreground mt-4">
                 Ensure columns include location, date, and metal concentration units (mg/L).
               </p>
+              
+              {/* Upload Error Display */}
+              {uploadError && (
+                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-600">
+                    <strong>Upload Error:</strong> {uploadError}
+                  </p>
+                </div>
+              )}
+              
+              {/* Success Display */}
+              {uploadedFileName && currentView === 'uploaded' && (
+                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-sm text-green-600">
+                    <strong>File Processed Successfully:</strong> {uploadedFileName}
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -188,51 +292,34 @@ export function PrimaryPage() {
             </Card>
           )}
 
-          {/* Water Safety Status */}
-          <Card className="card-enhanced">
-            <CardHeader>
-              <CardTitle className="text-xl font-bold text-foreground flex items-center space-x-2">
-                <CheckCircle className="w-6 h-6 text-safe" />
-                <span>Water safety status</span>
-              </CardTitle>
-              <p className="text-gray-secondary">Computed using HMPI method</p>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center space-x-6">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-4 mb-2">
-                    <div className="flex-1 h-8 bg-gray-secondary rounded-full overflow-hidden">
-                      <div className="h-full flex">
-                        <div className="bg-safe flex-[3]"></div>
-                        <div className="bg-unsafe flex-[1]"></div>
-                        <div className="bg-critical flex-[0.5]"></div>
+          {/* Water Safety Status - Only show when file is uploaded */}
+          {currentView === 'uploaded' && (
+            <Card className="card-enhanced">
+              <CardHeader>
+                <CardTitle className="text-xl font-bold text-foreground flex items-center space-x-2">
+                  <StatusIcon className={`w-6 h-6 ${waterStatus.color}`} />
+                  <span>Water safety status</span>
+                </CardTitle>
+                <p className="text-gray-secondary">Computed using HMPI method (HMPI: {currentData.avgHMPI.toFixed(1)})</p>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center space-x-6">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-4 mb-2">
+                      <div className={`flex-1 h-8 ${waterStatus.bgColor} rounded-full flex items-center justify-center`}>
+                        <span className="text-white font-bold text-lg">{waterStatus.status}</span>
                       </div>
+                      <span className={`text-4xl font-bold ${waterStatus.color}`}>{waterStatus.status}</span>
                     </div>
-                    <span className="text-4xl font-bold text-safe">Safe</span>
-                  </div>
-                  <div className="flex justify-between text-sm text-gray-secondary">
-                    <span>Safe</span>
-                    <span>Unsafe</span>
-                    <span>Critical</span>
+                    <div className="text-sm text-gray-secondary mt-2">
+                      {waterStatus.description}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
-          {/* India Water Quality Hotspots Map */}
-          <Card className="card-enhanced">
-            <CardHeader>
-              <CardTitle className="text-xl font-bold text-foreground flex items-center space-x-2">
-                <MapPin className="w-6 h-6 text-primary" />
-                <span>India Water Quality Hotspots</span>
-              </CardTitle>
-              <p className="text-gray-secondary">Interactive map showing water quality status across major Indian cities</p>
-            </CardHeader>
-            <CardContent>
-              <WorldMap height="500px" />
-            </CardContent>
-          </Card>
 
           {/* Analysis & Reports */}
           <Card className="card-enhanced">
@@ -244,13 +331,6 @@ export function PrimaryPage() {
                   </p>
                 </div>
                 <div className="flex items-center space-x-4">
-                  <Button
-                    variant="outline"
-                    className="border-primary text-primary hover:bg-primary/10"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Export Summary
-                  </Button>
                   <Button
                     onClick={handleOpenDetailedAnalysis}
                     className="btn-primary-enhanced"

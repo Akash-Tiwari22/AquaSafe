@@ -13,9 +13,10 @@ import { MetalConcentrationCards } from "@/components/dashboard/MetalConcentrati
 import { DataViewToggle } from "@/components/dashboard/DataViewToggle";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, FileSpreadsheet, FileText, ArrowLeft } from "lucide-react";
+import { Download, FileSpreadsheet, FileText, ArrowLeft, MapPin } from "lucide-react";
 import { useData } from "@/contexts/DataContext";
 import { useNavigate } from "react-router-dom";
+import WorldMap from "@/components/maps/WorldMap";
 
 const Index = () => {
   const { getCurrentData, currentView } = useData();
@@ -206,7 +207,7 @@ This report contains comprehensive analysis of heavy metal contamination levels 
       {/* Main Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <MetricCard
-          title="Avg HMPI"
+          title="HMPI"
           value={currentData.avgHMPI.toFixed(1)}
           subtitle={currentData.avgHMPI > 70 ? "Safe" : "Warning"}
           status={currentData.avgHMPI > 70 ? "safe" : "warning"}
@@ -241,35 +242,16 @@ This report contains comprehensive analysis of heavy metal contamination levels 
         {/* India Water Quality Hotspots */}
         <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              India Water Quality Hotspots
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center space-x-2">
+              <MapPin className="w-4 h-4 text-primary" />
+              <span>India Water Quality Hotspots</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-xs text-muted-foreground mb-4">
-              Identified water quality hot spots across key industrial zones
+              Interactive map showing water quality status across major Indian cities
             </div>
-            <div className="h-48 bg-muted/20 rounded-lg flex items-center justify-center">
-              <div className="text-center text-muted-foreground">
-                <div className="text-2xl mb-2">🗺️</div>
-                <div className="text-sm">Interactive Map</div>
-                <div className="text-xs">India Water Quality Hotspots</div>
-              </div>
-            </div>
-            <div className="flex gap-4 mt-4 text-xs">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded bg-success" />
-                <span>Safe</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded bg-warning" />
-                <span>Borderline</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded bg-destructive" />
-                <span>Unsafe</span>
-              </div>
-            </div>
+            <WorldMap height="400px" />
           </CardContent>
         </Card>
         

@@ -182,6 +182,177 @@ const waterQualityHotspots = [
     },
     population: "1.5M",
     description: "Ganga river pollution and industrial waste"
+  },
+  // Safe water quality cities (Green spots)
+  {
+    id: 11,
+    name: "Mysore",
+    position: [12.2958, 76.6394],
+    hmpi: 28.5,
+    wqi: 85.2,
+    status: "safe",
+    parameters: {
+      arsenic: 0.008,
+      lead: 0.012,
+      chromium: 0.015,
+      mercury: 0.002,
+      cadmium: 0.008
+    },
+    population: "1.2M",
+    description: "Well-maintained water infrastructure and natural springs"
+  },
+  {
+    id: 12,
+    name: "Coimbatore",
+    position: [11.0168, 76.9558],
+    hmpi: 32.1,
+    wqi: 82.7,
+    status: "safe",
+    parameters: {
+      arsenic: 0.012,
+      lead: 0.015,
+      chromium: 0.018,
+      mercury: 0.003,
+      cadmium: 0.010
+    },
+    population: "2.1M",
+    description: "Textile hub with good water treatment facilities"
+  },
+  {
+    id: 13,
+    name: "Kochi",
+    position: [9.9312, 76.2673],
+    hmpi: 35.8,
+    wqi: 79.4,
+    status: "safe",
+    parameters: {
+      arsenic: 0.015,
+      lead: 0.018,
+      chromium: 0.020,
+      mercury: 0.004,
+      cadmium: 0.012
+    },
+    population: "2.1M",
+    description: "Coastal city with effective water management systems"
+  },
+  {
+    id: 14,
+    name: "Thiruvananthapuram",
+    position: [8.5241, 76.9366],
+    hmpi: 26.9,
+    wqi: 87.1,
+    status: "safe",
+    parameters: {
+      arsenic: 0.006,
+      lead: 0.010,
+      chromium: 0.012,
+      mercury: 0.001,
+      cadmium: 0.006
+    },
+    population: "1.7M",
+    description: "Capital city with excellent water quality standards"
+  },
+  {
+    id: 15,
+    name: "Mangalore",
+    position: [12.9141, 74.8560],
+    hmpi: 31.4,
+    wqi: 83.6,
+    status: "safe",
+    parameters: {
+      arsenic: 0.010,
+      lead: 0.014,
+      chromium: 0.016,
+      mercury: 0.003,
+      cadmium: 0.009
+    },
+    population: "0.6M",
+    description: "Port city with clean water sources and good infrastructure"
+  },
+  {
+    id: 16,
+    name: "Shimla",
+    position: [31.1048, 77.1734],
+    hmpi: 24.7,
+    wqi: 89.3,
+    status: "safe",
+    parameters: {
+      arsenic: 0.005,
+      lead: 0.008,
+      chromium: 0.010,
+      mercury: 0.001,
+      cadmium: 0.005
+    },
+    population: "0.2M",
+    description: "Hill station with pristine mountain water sources"
+  },
+  {
+    id: 17,
+    name: "Dehradun",
+    position: [30.3165, 78.0322],
+    hmpi: 29.2,
+    wqi: 86.4,
+    status: "safe",
+    parameters: {
+      arsenic: 0.007,
+      lead: 0.011,
+      chromium: 0.013,
+      mercury: 0.002,
+      cadmium: 0.007
+    },
+    population: "0.8M",
+    description: "Educational hub with well-maintained water systems"
+  },
+  {
+    id: 18,
+    name: "Chandigarh",
+    position: [30.7333, 76.7794],
+    hmpi: 33.6,
+    wqi: 81.8,
+    status: "safe",
+    parameters: {
+      arsenic: 0.013,
+      lead: 0.016,
+      chromium: 0.019,
+      mercury: 0.004,
+      cadmium: 0.011
+    },
+    population: "1.2M",
+    description: "Planned city with modern water treatment facilities"
+  },
+  {
+    id: 19,
+    name: "Bhubaneswar",
+    position: [20.2961, 85.8245],
+    hmpi: 37.2,
+    wqi: 78.9,
+    status: "safe",
+    parameters: {
+      arsenic: 0.014,
+      lead: 0.017,
+      chromium: 0.021,
+      mercury: 0.004,
+      cadmium: 0.012
+    },
+    population: "1.1M",
+    description: "Temple city with good water quality management"
+  },
+  {
+    id: 20,
+    name: "Indore",
+    position: [22.7196, 75.8577],
+    hmpi: 38.9,
+    wqi: 77.2,
+    status: "safe",
+    parameters: {
+      arsenic: 0.015,
+      lead: 0.018,
+      chromium: 0.022,
+      mercury: 0.005,
+      cadmium: 0.013
+    },
+    population: "3.2M",
+    description: "Cleanest city in India with excellent water infrastructure"
   }
 ];
 
