@@ -24,11 +24,23 @@ const storage = multer.diskStorage({
 
 // File filter function
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = (process.env.ALLOWED_FILE_TYPES || 'application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv').split(',');
+  const allowedTypes = (process.env.ALLOWED_FILE_TYPES || 'application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,text/plain,application/csv').split(',');
   
-  if (allowedTypes.includes(file.mimetype)) {
+  // Log the detected MIME type for debugging
+  console.log('Uploaded file MIME type:', file.mimetype, 'Original name:', file.originalname);
+  
+  // Check MIME type or file extension
+  const isValidMimeType = allowedTypes.includes(file.mimetype);
+  const isValidExtension = file.originalname && (
+    file.originalname.toLowerCase().endsWith('.csv') ||
+    file.originalname.toLowerCase().endsWith('.xlsx') ||
+    file.originalname.toLowerCase().endsWith('.xls')
+  );
+  
+  if (isValidMimeType || isValidExtension) {
     cb(null, true);
   } else {
+    console.log('File rejected - MIME type:', file.mimetype, 'Extension valid:', isValidExtension);
     const error = new AppError('Invalid file type. Only CSV and Excel files are allowed.', 400);
     cb(error, false);
   }

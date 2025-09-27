@@ -10,7 +10,7 @@ const contaminationData = [
 
 export function ContaminationTable() {
   return (
-    <Card className="bg-card border-border">
+    <Card className="bg-card border-border h-full">
       <CardHeader>
         <CardTitle className="text-sm font-medium text-muted-foreground">
           Regional Contamination Data

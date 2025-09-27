@@ -2,7 +2,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { ChartCard } from "./ChartCard";
 
 const data = [
-  { name: "Safe Samples", value: 65, color: "hsl(var(--chart-1))" },
+  { name: "Safe Samples", value: 65, color: "#22c55e" },
   { name: "Unsafe Samples", value: 20, color: "hsl(var(--chart-3))" },
   { name: "Critical Samples", value: 15, color: "hsl(var(--destructive))" },
 ];

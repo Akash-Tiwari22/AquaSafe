@@ -6,6 +6,8 @@ import { Upload, Download, BarChart3, CheckCircle, Clock, FileText, HelpCircle, 
 import { useNavigate } from "react-router-dom";
 import { useData } from "@/contexts/DataContext";
 import { apiService, type WaterQualityData } from "@/services/api";
+import { SiriAnimation } from "@/components/ui/siri-animation";
+import { QueryProcessor } from "@/services/queryProcessor";
 
 export function PrimaryPage() {
   const [dragActive, setDragActive] = useState(false);
@@ -13,6 +15,9 @@ export function PrimaryPage() {
   const [progress, setProgress] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+  const [showSiriAnimation, setShowSiriAnimation] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [queryResponse, setQueryResponse] = useState('');
   const navigate = useNavigate();
   const { getCurrentData, currentView, setUploadedData, setCurrentView } = useData();
   const currentData = getCurrentData();
@@ -107,7 +112,13 @@ export function PrimaryPage() {
         },
         sampleCount: response.data.analysis.totalSamples,
         lastUpdated: new Date().toISOString(),
-        source: 'uploaded'
+        source: 'uploaded',
+        dateRange: {
+          startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days ago
+          endDate: new Date().toISOString().split('T')[0] // today
+        },
+        regions: ['Uploaded Data Region'], // This would be extracted from the actual file
+        fileName: response.data.fileName
       };
 
       setUploadedData(waterQualityData);
@@ -144,6 +155,149 @@ export function PrimaryPage() {
     navigate('/dashboard');
   };
 
+  // Handle search submit with Siri animation
+  const handleSearchSubmit = () => {
+    const inputElement = document.querySelector('input[type="text"]') as HTMLInputElement;
+    const query = inputElement?.value || 'Show arsenic hotspots near Nashik in 2019';
+    
+    setSearchQuery(query);
+    setShowSiriAnimation(true);
+    
+    // Process the query
+    const processor = new QueryProcessor(currentData);
+    const response = processor.processQuery(query);
+    setQueryResponse(response.answer);
+  };
+
+  const handleAnimationComplete = () => {
+    setShowSiriAnimation(false);
+    // Clear the query for next use
+    setTimeout(() => {
+      setSearchQuery('');
+      setQueryResponse('');
+    }, 1000);
+  };
+
+  const handleAnimationClose = () => {
+    setShowSiriAnimation(false);
+    setSearchQuery('');
+    setQueryResponse('');
+  };
+
+  // Generate dynamic policy recommendations based on current data
+  const generatePolicyRecommendations = () => {
+    const recommendations = [];
+    
+    // Preventive Measures - Always include based on data quality
+    if (currentData.avgHMPI > 70 && currentData.safeQuality > 75) {
+      recommendations.push({
+        type: 'Preventive Action',
+        icon: CheckCircle,
+        title: 'Preventive Monitoring Protocol',
+        content: `Data shows good quality (HMPI: ${currentData.avgHMPI.toFixed(1)}, ${currentData.safeQuality.toFixed(1)}% safe samples). Proceed with: 1) Monthly sampling at current locations, 2) Establish baseline trends for seasonal variations, 3) Implement early warning system for quality degradation.`,
+        priority: 'low'
+      });
+    } else if (currentData.avgHMPI >= 40 && currentData.avgHMPI <= 70) {
+      recommendations.push({
+        type: 'Preventive Action',
+        icon: Clock,
+        title: 'Enhanced Prevention Strategy',
+        content: `Moderate quality indicators (HMPI: ${currentData.avgHMPI.toFixed(1)}) suggest preventive intervention. Proceed with: 1) Bi-weekly monitoring, 2) Source protection measures, 3) Pre-treatment system installation, 4) Community health impact assessment.`,
+        priority: 'medium'
+      });
+    } else {
+      recommendations.push({
+        type: 'Immediate Action',
+        icon: AlertTriangle,
+        title: 'Critical Prevention Measures',
+        content: `Poor quality data (HMPI: ${currentData.avgHMPI.toFixed(1)}) requires immediate preventive action. Proceed with: 1) Daily monitoring, 2) Alternative water source identification, 3) Emergency treatment protocols, 4) Public health advisory issuance.`,
+        priority: 'high'
+      });
+    }
+
+    // Data Analysis Procedure Recommendations
+    const metalLimits = {
+      arsenic: { limit: 0.01, name: 'Arsenic', treatment: 'coagulation-flocculation or adsorption systems' },
+      lead: { limit: 0.01, name: 'Lead', treatment: 'corrosion control and pipe replacement' },
+      mercury: { limit: 0.001, name: 'Mercury', treatment: 'activated carbon filtration' },
+      cadmium: { limit: 0.003, name: 'Cadmium', treatment: 'reverse osmosis or ion exchange' },
+      chromium: { limit: 0.05, name: 'Chromium', treatment: 'chemical reduction and precipitation' }
+    };
+
+    const exceedingMetals = [];
+    Object.entries(metalLimits).forEach(([key, metal]) => {
+      const value = currentData.metalConcentrations[key as keyof typeof currentData.metalConcentrations];
+      if (value > metal.limit) {
+        exceedingMetals.push({ 
+          name: metal.name, 
+          value, 
+          limit: metal.limit, 
+          ratio: (value / metal.limit).toFixed(1),
+          treatment: metal.treatment
+        });
+      }
+    });
+
+    if (exceedingMetals.length > 0) {
+      const worstMetal = exceedingMetals.reduce((worst, current) => 
+        (current.value / current.limit) > (worst.value / worst.limit) ? current : worst
+      );
+      
+      recommendations.push({
+        type: 'Treatment Protocol',
+        icon: XCircle,
+        title: 'Contamination Treatment Procedure',
+        content: `${worstMetal.name} exceeds limits by ${worstMetal.ratio}x. Proceed with: 1) Immediate source isolation, 2) Install ${worstMetal.treatment}, 3) Weekly post-treatment monitoring, 4) Health risk assessment for affected population, 5) Alternative supply arrangements during treatment.`,
+        priority: 'high'
+      });
+    }
+
+    // Data Quality and Sampling Procedure
+    if (currentData.sampleCount < 50) {
+      recommendations.push({
+        type: 'Data Enhancement',
+        icon: BarChart3,
+        title: 'Sampling Procedure Enhancement',
+        content: `Limited sample size (${currentData.sampleCount} samples). Proceed with: 1) Expand to minimum 100 samples for statistical significance, 2) Include seasonal variation data, 3) Add upstream/downstream sampling points, 4) Implement quality control duplicates (10% of samples).`,
+        priority: 'medium'
+      });
+    } else if (currentData.unsafeCritical > 25) {
+      recommendations.push({
+        type: 'Data Validation',
+        icon: Search,
+        title: 'Data Verification Protocol',
+        content: `High unsafe sample rate (${currentData.unsafeCritical.toFixed(1)}%). Proceed with: 1) Re-analyze 20% of samples for confirmation, 2) Investigate outlier locations, 3) Cross-validate with historical data, 4) Implement chain-of-custody procedures for future sampling.`,
+        priority: 'high'
+      });
+    }
+
+    // Regulatory and Compliance Procedures
+    recommendations.push({
+      type: 'Compliance Procedure',
+      icon: FileText,
+      title: 'Regulatory Compliance Steps',
+      content: `Based on current data analysis, proceed with: 1) Prepare compliance report for local water board, 2) Schedule quarterly review meetings with health authorities, 3) Establish public disclosure protocols, 4) Create action plan timeline with measurable milestones, 5) Set up stakeholder communication framework.`,
+      priority: 'medium'
+    });
+
+    // Long-term Preventive Strategy
+    if (currentData.avgHMPI > 50) {
+      recommendations.push({
+        type: 'Long-term Prevention',
+        icon: HelpCircle,
+        title: 'Sustainable Management Protocol',
+        content: `For long-term water quality sustainability, proceed with: 1) Develop 5-year monitoring plan, 2) Establish community-based water quality committees, 3) Create early warning indicators dashboard, 4) Implement source water protection zones, 5) Develop climate resilience strategies.`,
+        priority: 'low'
+      });
+    }
+
+    // Prioritize and return top 3 recommendations
+    const priorityOrder = { 'high': 3, 'medium': 2, 'low': 1 };
+    return recommendations
+      .sort((a, b) => priorityOrder[b.priority] - priorityOrder[a.priority])
+      .slice(0, 3);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -165,9 +319,13 @@ export function PrimaryPage() {
                   type="text"
                   placeholder="Ask in natural language:"
                   defaultValue="Show arsenic hotspots near Nashik in 2019"
-                  className="w-full px-4 py-2 pl-4 pr-20 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-input"
+                  className="w-full h-10 px-4 pl-4 pr-24 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-input text-sm"
                 />
-                <Button className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-primary hover:bg-primary/90 text-white px-4 py-1 text-sm">
+                <Button 
+                  size="sm"
+                  onClick={handleSearchSubmit}
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2 btn-primary-enhanced h-8 px-3 text-xs font-medium rounded-md shadow-sm hover:shadow-md transition-all duration-200"
+                >
                   Submit
                 </Button>
               </div>
@@ -343,53 +501,66 @@ export function PrimaryPage() {
             </CardContent>
           </Card>
 
-          {/* Insights & Tips */}
+          {/* Policy Recommendations */}
           <Card className="card-enhanced">
             <CardHeader>
-              <CardTitle className="text-xl font-bold text-foreground">Insights & Tips</CardTitle>
+              <CardTitle className="text-xl font-bold text-foreground">Policy Recommendations</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="bg-light-blue-secondary rounded-lg p-4 flex items-start space-x-4">
-                  <div className="w-8 h-8 bg-teal-blue/10 rounded-full flex items-center justify-center flex-shrink-0">
-                    <HelpCircle className="w-4 h-4 text-teal-blue" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-foreground">Tip:</p>
-                    <p className="text-gray-secondary">
-                      Outliers in Pb, Cd, Cr(VI) drive HMPI most strongly. Verify sampling points with anomalies.
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="bg-light-blue-secondary rounded-lg p-4 flex items-start space-x-4">
-                  <div className="w-8 h-8 bg-teal-blue/10 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Clock className="w-4 h-4 text-teal-blue" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-foreground">Trend:</p>
-                    <p className="text-gray-secondary">
-                      Consider seasonal trends: compare pre- and post-monsoon datasets for robust assessment.
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="bg-light-blue-secondary rounded-lg p-4 flex items-start space-x-4">
-                  <div className="w-8 h-8 bg-teal-blue/10 rounded-full flex items-center justify-center flex-shrink-0">
-                    <FileText className="w-4 h-4 text-teal-blue" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-foreground">Compliance:</p>
-                    <p className="text-gray-secondary">
-                      Export a compliance report mapped to WHO and local standards after review.
-                    </p>
-                  </div>
-                </div>
+                {generatePolicyRecommendations().map((recommendation, index) => {
+                  const IconComponent = recommendation.icon;
+                  const priorityColors = {
+                    high: 'bg-red-50 border-red-200',
+                    medium: 'bg-yellow-50 border-yellow-200', 
+                    low: 'bg-green-50 border-green-200'
+                  };
+                  const iconColors = {
+                    high: 'text-red-600 bg-red-100',
+                    medium: 'text-yellow-600 bg-yellow-100',
+                    low: 'text-green-600 bg-green-100'
+                  };
+                  
+                  return (
+                    <div 
+                      key={index} 
+                      className={`rounded-lg p-4 flex items-start space-x-4 border ${priorityColors[recommendation.priority]}`}
+                    >
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${iconColors[recommendation.priority]}`}>
+                        <IconComponent className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-semibold text-foreground">{recommendation.title}</p>
+                          <span className={`text-xs px-2 py-1 rounded-full ${
+                            recommendation.priority === 'high' ? 'bg-red-100 text-red-700' :
+                            recommendation.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-green-100 text-green-700'
+                          }`}>
+                            {recommendation.type}
+                          </span>
+                        </div>
+                        <p className="text-gray-secondary text-sm leading-relaxed">
+                          {recommendation.content}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
         </div>
-      </main>
-    </div>
-  );
-}
+        </main>
+
+        {/* Siri Animation Overlay */}
+        <SiriAnimation 
+          isActive={showSiriAnimation}
+          onComplete={handleAnimationComplete}
+          onClose={handleAnimationClose}
+          query={searchQuery}
+          response={queryResponse}
+        />
+      </div>
+    );
+  }

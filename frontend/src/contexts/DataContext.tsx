@@ -14,6 +14,12 @@ export interface WaterQualityData {
   sampleCount: number;
   lastUpdated: string;
   source: 'uploaded' | 'complete';
+  dateRange?: {
+    startDate: string;
+    endDate: string;
+  };
+  regions?: string[];
+  fileName?: string;
 }
 
 interface DataContextType {
@@ -42,7 +48,13 @@ const defaultCompleteData: WaterQualityData = {
   },
   sampleCount: 1250,
   lastUpdated: new Date().toISOString(),
-  source: 'complete'
+  source: 'complete',
+  dateRange: {
+    startDate: '2024-01-01',
+    endDate: '2024-12-05'
+  },
+  regions: ['Maharashtra', 'Delhi', 'Karnataka', 'West Bengal', 'Gujarat'],
+  fileName: 'Complete Dataset'
 };
 
 export function DataProvider({ children }: { children: ReactNode }) {

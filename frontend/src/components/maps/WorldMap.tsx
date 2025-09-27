@@ -411,16 +411,7 @@ const WorldMap: React.FC<WorldMapProps> = ({
 
   return (
     <div className={`w-full ${className}`} style={{ height }}>
-      <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-        {/* Map Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
-          <h3 className="text-xl font-semibold text-white">
-            India Water Quality Hotspots
-          </h3>
-          <p className="text-blue-100 text-sm mt-1">
-            Heavy Metal Pollution Index (HMPI) and Water Quality Index (WQI) across major Indian cities
-          </p>
-        </div>
+      <div className="bg-white rounded-lg overflow-hidden h-full flex flex-col">
 
         {/* Legend */}
         <div className="px-6 py-3 bg-gray-50 border-b border-gray-200">
@@ -446,11 +437,11 @@ const WorldMap: React.FC<WorldMapProps> = ({
         </div>
 
         {/* Map Container */}
-        <div className="relative">
+        <div className="relative flex-1">
           <MapContainer
             center={[20.5937, 78.9629]} // Center on India
             zoom={5}
-            style={{ height: '400px', width: '100%' }}
+            style={{ height: '300px', width: '100%' }}
             className="z-0"
           >
             <TileLayer
@@ -532,13 +523,6 @@ const WorldMap: React.FC<WorldMapProps> = ({
           </MapContainer>
         </div>
 
-        {/* Map Footer */}
-        <div className="px-6 py-3 bg-gray-50 border-t border-gray-200">
-          <div className="flex justify-between items-center text-xs text-gray-500">
-            <span>Data represents Heavy Metal Pollution Index (HMPI) and Water Quality Index (WQI)</span>
-            <span>Last updated: {new Date().toLocaleDateString()}</span>
-          </div>
-        </div>
       </div>
     </div>
   );
