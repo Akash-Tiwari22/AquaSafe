@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, Eye, EyeOff, Mail, Lock, User, Building } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
+import { authService } from "@/services/auth";
 
 export function SignupPage() {
   const [formData, setFormData] = useState({
@@ -33,7 +34,6 @@ export function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Basic validation
     if (formData.password !== formData.confirmPassword) {
       alert("Passwords do not match");
       return;
@@ -45,13 +45,20 @@ export function SignupPage() {
     }
 
     setIsLoading(true);
-    
-    // Simulate signup process
-    setTimeout(() => {
+    try {
+      const name = `${formData.firstName} ${formData.lastName}`.trim();
+      await authService.register({
+        name,
+        email: formData.email,
+        password: formData.password,
+        organization: formData.organization || undefined
+      });
+      navigate('/login');
+    } catch (err: any) {
+      alert(err?.message || 'Registration failed');
+    } finally {
       setIsLoading(false);
-      // For demo purposes, redirect to primary page after "signup"
-      navigate('/');
-    }, 2000);
+    }
   };
 
   const handleBackToHome = () => {
@@ -267,7 +274,7 @@ export function SignupPage() {
                 {isLoading ? "Creating account..." : "Create Account"}
               </Button>
             </form>
-
+            
             {/* Divider */}
             <div className="mt-6">
               <div className="relative">

@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
+import { authService } from "@/services/auth";
 
 export function LoginPage() {
   const [email, setEmail] = useState("");
@@ -18,13 +19,14 @@ export function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Simulate login process
-    setTimeout(() => {
-      setIsLoading(false);
-      // For demo purposes, redirect to primary page after "login"
+    try {
+      await authService.login({ email, password, rememberMe });
       navigate('/');
-    }, 1500);
+    } catch (err: any) {
+      alert(err?.message || 'Login failed');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleBackToHome = () => {

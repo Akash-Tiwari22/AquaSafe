@@ -11,10 +11,19 @@ export const processCSV = async (filePath) => {
     const results = [];
     const stream = createReadStream(filePath);
     
+    const parser = csv({
+      mapHeaders: ({ header }) => (header ? String(header).trim() : header),
+      mapValues: ({ value }) => (typeof value === 'string' ? value.trim() : value),
+      skipLines: 0
+    });
+    
     stream
-      .pipe(csv())
+      .on('error', (error) => {
+        logger.error('CSV read stream failed', { filePath, error: error.message });
+        reject(new AppError('Failed to read CSV file', 400));
+      })
+      .pipe(parser)
       .on('data', (data) => {
-        // Clean and validate data
         const cleanedData = cleanWaterQualityData(data);
         if (cleanedData) {
           results.push(cleanedData);
@@ -29,7 +38,7 @@ export const processCSV = async (filePath) => {
       })
       .on('error', (error) => {
         logger.error('CSV processing failed', { filePath, error: error.message });
-        reject(new AppError('Failed to process CSV file', 500));
+        reject(new AppError('Failed to process CSV file', 400));
       });
   });
 };
@@ -37,17 +46,21 @@ export const processCSV = async (filePath) => {
 // Process Excel file
 export const processExcel = async (filePath) => {
   try {
-    const workbook = XLSX.readFile(filePath);
-    const sheetName = workbook.SheetNames[0]; // Use first sheet
+    const workbook = XLSX.readFile(filePath, { cellDates: true });
+    const sheetName = workbook.SheetNames[0];
+    if (!sheetName) {
+      throw new AppError('Excel file has no sheets', 400);
+    }
     const worksheet = workbook.Sheets[sheetName];
+    if (!worksheet) {
+      throw new AppError('Failed to read Excel worksheet', 400);
+    }
     
-    // Convert to JSON
-    const rawData = XLSX.utils.sheet_to_json(worksheet);
+    const rawData = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
     
-    // Clean and validate data
     const results = rawData
-      .map(data => cleanWaterQualityData(data))
-      .filter(data => data !== null);
+      .map((data) => cleanWaterQualityData(data))
+      .filter((data) => data !== null);
     
     logger.info('Excel processing completed', { 
       filePath, 
@@ -57,7 +70,8 @@ export const processExcel = async (filePath) => {
     return results;
   } catch (error) {
     logger.error('Excel processing failed', { filePath, error: error.message });
-    throw new AppError('Failed to process Excel file', 500);
+    if (error instanceof AppError) throw error;
+    throw new AppError('Failed to process Excel file', 400);
   }
 };
 
@@ -128,14 +142,34 @@ const cleanWaterQualityData = (rawData) => {
     // Clean and map data
     const cleanedData = {};
     
+    // Helper to normalize header (strip units and parentheses)
+    const normalizeHeader = (k) => {
+      if (!k) return '';
+      // Extract content before '(' to drop unit annotations like (µg/L)
+      const base = String(k).split('(')[0].trim().toLowerCase();
+      return base;
+    };
+    
+    // Detect if a header hints at micro units (µg/L or ug/L)
+    const headerHintsMicro = (k) => {
+      const lower = String(k).toLowerCase();
+      return lower.includes('µg') || lower.includes('ug') || lower.includes('micro');
+    };
+    
+    const heavyMetalsSet = new Set(['arsenic','lead','mercury','cadmium','chromium','nickel','copper','zinc','iron','manganese']);
+    
     // Process each field in raw data
-    Object.keys(rawData).forEach(key => {
-      const cleanKey = key.toLowerCase().trim();
-      const mappedKey = parameterMappings[cleanKey];
+    Object.keys(rawData || {}).forEach(key => {
+      const normalizedKey = normalizeHeader(key);
+      const mappedKey = parameterMappings[normalizedKey] || parameterMappings[key.toLowerCase().trim()];
       
       if (mappedKey && rawData[key] !== null && rawData[key] !== undefined && rawData[key] !== '') {
-        const value = parseFloat(rawData[key]);
+        let value = parseFloat(rawData[key]);
         if (!isNaN(value) && value >= 0) {
+          // If heavy metal and header suggests micro units, convert µg/L -> mg/L
+          if (heavyMetalsSet.has(mappedKey) && headerHintsMicro(key)) {
+            value = value / 1000; // 1000 µg = 1 mg
+          }
           cleanedData[mappedKey] = value;
         }
       }
@@ -143,7 +177,7 @@ const cleanWaterQualityData = (rawData) => {
     
     // Extract sample date
     let sampleDate = new Date();
-    if (rawData.date || rawData.sample_date || rawData.timestamp) {
+    if (rawData && (rawData.date || rawData.sample_date || rawData.timestamp)) {
       const dateValue = rawData.date || rawData.sample_date || rawData.timestamp;
       const parsedDate = new Date(dateValue);
       if (!isNaN(parsedDate.getTime())) {
@@ -153,14 +187,14 @@ const cleanWaterQualityData = (rawData) => {
     
     // Extract location information
     const location = {
-      name: rawData.location || rawData.site || rawData.station || 'Unknown',
+      name: (rawData && (rawData.location || rawData.site || rawData.station)) || 'Unknown',
       coordinates: {
-        latitude: parseFloat(rawData.latitude || rawData.lat) || null,
-        longitude: parseFloat(rawData.longitude || rawData.lng || rawData.lon) || null
+        latitude: rawData ? (parseFloat(rawData.latitude || rawData.lat) || null) : null,
+        longitude: rawData ? (parseFloat(rawData.longitude || rawData.lng || rawData.lon) || null) : null
       },
-      region: rawData.region || null,
-      state: rawData.state || null,
-      country: rawData.country || null
+      region: rawData ? (rawData.region || null) : null,
+      state: rawData ? (rawData.state || null) : null,
+      country: rawData ? (rawData.country || null) : null
     };
     
     // Only return data if we have at least some parameters

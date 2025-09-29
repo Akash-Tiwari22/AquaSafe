@@ -195,7 +195,7 @@ const Index = () => {
         ['Data Source:', currentView === 'uploaded' ? 'Uploaded File' : 'Complete Dataset'],
         [''],
         ['Key Metrics', 'Value', 'Status'],
-        ['Average HMPI', currentData.avgHMPI.toFixed(1), currentData.avgHMPI > 70 ? 'Safe' : 'Warning'],
+        ['Average HMPI', currentData.avgHMPI.toFixed(1), currentData.avgHMPI >= 100 ? 'Critical' : currentData.avgHMPI >= 90 ? 'Warning' : 'Safe'],
         ['Safe Quality (%)', currentData.safeQuality.toFixed(1), currentData.safeQuality > 60 ? 'Good' : 'Poor'],
         ['Unsafe/Critical (%)', currentData.unsafeCritical.toFixed(1), currentData.unsafeCritical < 40 ? 'Warning' : 'Critical'],
         ['Sample Count', currentData.sampleCount, 'Current'],
@@ -253,7 +253,7 @@ const Index = () => {
         ['Mar 2024', '78.5', '70', 'Above Target'],
         ['Apr 2024', '75.3', '70', 'Above Target'],
         ['May 2024', '73.8', '70', 'Above Target'],
-        ['Jun 2024', currentData.avgHMPI.toFixed(1), '70', currentData.avgHMPI > 70 ? 'Above Target' : 'Below Target'],
+        ['Jun 2024', currentData.avgHMPI.toFixed(1), '100', currentData.avgHMPI >= 100 ? 'Above Threshold' : 'Below Threshold'],
         [''],
         ['Instructions:'],
         ['1. Select data in rows 3-8 (Month, HMPI Value, Target columns)'],
@@ -316,7 +316,7 @@ const Index = () => {
       
       doc.setFontSize(12);
       const metrics = [
-        `Average HMPI: ${currentData.avgHMPI.toFixed(1)} (${currentData.avgHMPI > 70 ? 'Safe' : 'Warning'})`,
+        `Average HMPI: ${currentData.avgHMPI.toFixed(1)} (${currentData.avgHMPI >= 100 ? 'Critical' : currentData.avgHMPI >= 90 ? 'Warning' : 'Safe'})`,
         `Safe Quality: ${currentData.safeQuality.toFixed(1)}%`,
         `Unsafe/Critical: ${currentData.unsafeCritical.toFixed(1)}%`,
         `Sample Count: ${currentData.sampleCount}`
@@ -402,7 +402,7 @@ const Index = () => {
       
       // Generate dynamic conclusion based on data
       let conclusion = '';
-      const hmpiStatus = currentData.avgHMPI > 70 ? 'safe' : currentData.avgHMPI > 40 ? 'moderate' : 'critical';
+      const hmpiStatus = currentData.avgHMPI >= 100 ? 'critical' : currentData.avgHMPI >= 90 ? 'moderate' : 'safe';
       
       if (hmpiStatus === 'safe') {
         conclusion = `Based on the comprehensive water quality analysis, the overall Heavy Metal Pollution Index (HMPI) of ${currentData.avgHMPI.toFixed(1)} indicates that the water quality is within acceptable limits. With ${currentData.safeQuality.toFixed(1)}% of samples classified as safe, the water source demonstrates good quality standards. However, continuous monitoring is recommended to maintain these standards.`;
@@ -564,8 +564,8 @@ const Index = () => {
         <MetricCard
           title="HMPI"
           value={currentData.avgHMPI.toFixed(1)}
-          subtitle={currentData.avgHMPI > 70 ? "Safe" : "Warning"}
-          status={currentData.avgHMPI > 70 ? "safe" : "warning"}
+          subtitle={currentData.avgHMPI >= 100 ? "Critical" : currentData.avgHMPI >= 90 ? "Warning" : "Safe"}
+          status={currentData.avgHMPI >= 100 ? "critical" : currentData.avgHMPI >= 90 ? "warning" : "safe"}
           description="Overall heavy metal pollution levels"
         />
         <MetricCard

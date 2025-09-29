@@ -1,5 +1,6 @@
 import multer from 'multer';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { logger, logFileOperation } from '../utils/logger.js';
 import { AppError } from './errorHandler.js';
@@ -11,6 +12,14 @@ const __dirname = path.dirname(__filename);
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadPath = process.env.UPLOAD_PATH || path.join(__dirname, '../../uploads');
+    // Ensure the upload directory exists to prevent server errors/crashes
+    try {
+      if (!fs.existsSync(uploadPath)) {
+        fs.mkdirSync(uploadPath, { recursive: true });
+      }
+    } catch (err) {
+      return cb(err, uploadPath);
+    }
     cb(null, uploadPath);
   },
   filename: (req, file, cb) => {

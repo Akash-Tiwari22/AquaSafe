@@ -31,40 +31,47 @@ const WATER_QUALITY_STANDARDS = {
   eColi: { max: 0, unit: 'MPN/100mL' }
 };
 
-// Calculate HMPI (Heavy Metal Pollution Index)
+// Calculate HMPI (Heavy Metal Pollution Index) using the provided formula
+// HMPI = (Σ Wi * Qi) / (Σ Wi)
+// Wi = 1 / Si  (Si is permissible limit)
+// Qi = (Mi / Si) * 100  (Mi is measured concentration)
 export const calculateHMPI = (parameters) => {
   const heavyMetals = [
-    'arsenic', 'lead', 'mercury', 'cadmium', 'chromium', 
+    'arsenic', 'lead', 'mercury', 'cadmium', 'chromium',
     'nickel', 'copper', 'zinc', 'iron', 'manganese'
   ];
-  
-  let hmpi = 0;
-  let validMetals = 0;
-  
-  heavyMetals.forEach(metal => {
-    const value = parameters[metal];
+
+  let sumWeightedQi = 0;
+  let sumWeights = 0;
+  let countedMetals = 0;
+
+  heavyMetals.forEach((metal) => {
+    const Mi = parameters?.[metal];
     const standard = WATER_QUALITY_STANDARDS[metal];
-    
-    if (value !== null && value !== undefined && !isNaN(value) && standard) {
-      hmpi += (value / standard.max);
-      validMetals++;
+    const Si = standard?.max; // BIS/WHO permissible limit for that metal
+
+    if (Mi !== null && Mi !== undefined && !isNaN(Mi) && Si && Si > 0) {
+      const Wi = 1 / Si;
+      const Qi = (Mi / Si) * 100;
+      sumWeightedQi += Wi * Qi;
+      sumWeights += Wi;
+      countedMetals += 1;
     }
   });
-  
-  if (validMetals === 0) {
+
+  if (countedMetals === 0 || sumWeights === 0) {
     return { value: 0, status: 'safe', confidence: 0 };
   }
-  
-  hmpi = hmpi / validMetals;
-  
-  // Determine status based on HMPI value
+
+  const hmpi = sumWeightedQi / sumWeights;
+
+  // Status per spec: HMPI < 100 => Safe; HMPI >= 100 => Critical/Polluted
   let status = 'safe';
-  if (hmpi > 2) status = 'critical';
-  else if (hmpi > 1) status = 'unsafe';
-  
-  // Calculate confidence based on number of parameters
-  const confidence = Math.min(1, validMetals / heavyMetals.length);
-  
+  if (hmpi >= 100) status = 'critical';
+  else if (hmpi >= 90) status = 'warning'; // optional intermediate band
+
+  const confidence = Math.min(1, countedMetals / heavyMetals.length);
+
   return { value: hmpi, status, confidence };
 };
 
@@ -186,13 +193,14 @@ export const analyzeParameter = (parameter, value) => {
 
 // Analyze all parameters
 export const analyzeAllParameters = (parameters) => {
+  const safeParameters = parameters || {};
   const results = {};
   let safeCount = 0;
   let unsafeCount = 0;
   let criticalCount = 0;
   
-  Object.keys(parameters).forEach(param => {
-    const analysis = analyzeParameter(param, parameters[param]);
+  Object.keys(safeParameters).forEach(param => {
+    const analysis = analyzeParameter(param, safeParameters[param]);
     results[param] = analysis;
     
     if (analysis.status === 'safe') safeCount++;
@@ -203,7 +211,7 @@ export const analyzeAllParameters = (parameters) => {
   return {
     parameters: results,
     summary: {
-      total: Object.keys(parameters).length,
+      total: Object.keys(safeParameters).length,
       safe: safeCount,
       unsafe: unsafeCount,
       critical: criticalCount
@@ -213,31 +221,35 @@ export const analyzeAllParameters = (parameters) => {
 
 // Calculate overall water quality status
 export const calculateOverallStatus = (parameters) => {
-  const analysis = analyzeAllParameters(parameters);
+  const paramsAnalysis = analyzeAllParameters(parameters || {});
   const hmpi = calculateHMPI(parameters);
   const wqi = calculateWQI(parameters);
-  
+
+  // Safe Quality % of metals within acceptable limits
+  const totalMetals = paramsAnalysis.summary.total;
+  const safeMetals = paramsAnalysis.summary.safe;
+  const safeQualityPercent = totalMetals > 0 ? (safeMetals / totalMetals) * 100 : 0;
+  const unsafePercent = totalMetals > 0 ? ((totalMetals - safeMetals) / totalMetals) * 100 : 0;
+
+  // Overall status driven primarily by HMPI per provided spec
   let overallStatus = 'safe';
   let riskLevel = 'low';
-  
-  // Determine overall status
-  if (analysis.summary.critical > 0 || hmpi.status === 'critical') {
+  if (hmpi.value >= 100) {
     overallStatus = 'critical';
     riskLevel = 'critical';
-  } else if (analysis.summary.unsafe > 2 || hmpi.status === 'unsafe') {
-    overallStatus = 'unsafe';
-    riskLevel = 'high';
-  } else if (analysis.summary.unsafe > 0) {
-    overallStatus = 'unsafe';
+  } else if (hmpi.value >= 90) {
+    overallStatus = 'warning';
     riskLevel = 'medium';
   }
-  
+
   return {
     overallStatus,
     riskLevel,
     hmpi,
     wqi,
-    parameterAnalysis: analysis,
+    parameterAnalysis: paramsAnalysis,
+    safeQualityPercent,
+    unsafePercent,
     confidence: Math.min(hmpi.confidence, wqi.confidence)
   };
 };
@@ -245,7 +257,8 @@ export const calculateOverallStatus = (parameters) => {
 // Generate key findings
 export const generateKeyFindings = (analysis) => {
   const findings = [];
-  const { parameters, hmpi, wqi, overallStatus } = analysis;
+  const { parameterAnalysis, hmpi, wqi, overallStatus } = analysis;
+  const parameters = parameterAnalysis?.parameters || {};
   
   // Overall status finding
   if (overallStatus === 'critical') {
@@ -286,7 +299,8 @@ export const generateKeyFindings = (analysis) => {
 // Generate recommendations
 export const generateRecommendations = (analysis) => {
   const recommendations = [];
-  const { parameters, hmpi, overallStatus } = analysis;
+  const { parameterAnalysis, hmpi, overallStatus } = analysis;
+  const parameters = parameterAnalysis?.parameters || {};
   
   if (overallStatus === 'critical') {
     recommendations.push('Immediate water treatment required before consumption');
@@ -398,11 +412,16 @@ export const performComprehensiveAnalysis = (data) => {
     // Calculate aggregate metrics
     const totalSamples = analysisResults.length;
     const safeSamples = analysisResults.filter(r => r.analysis.overallStatus === 'safe').length;
-    const unsafeSamples = analysisResults.filter(r => r.analysis.overallStatus === 'unsafe').length;
+    const warningSamples = analysisResults.filter(r => r.analysis.overallStatus === 'warning').length;
     const criticalSamples = analysisResults.filter(r => r.analysis.overallStatus === 'critical').length;
     
-    const avgHMPI = analysisResults.reduce((sum, r) => sum + r.analysis.hmpi.value, 0) / totalSamples;
-    const avgWQI = analysisResults.reduce((sum, r) => sum + r.analysis.wqi.value, 0) / totalSamples;
+    const avgHMPI = totalSamples > 0 ? analysisResults.reduce((sum, r) => sum + r.analysis.hmpi.value, 0) / totalSamples : 0;
+    const avgWQI = totalSamples > 0 ? analysisResults.reduce((sum, r) => sum + r.analysis.wqi.value, 0) / totalSamples : 0;
+
+    // Aggregate Safe Quality across metals
+    const totalMetalsCount = analysisResults.reduce((sum, r) => sum + r.analysis.parameterAnalysis.summary.total, 0);
+    const totalSafeMetals = analysisResults.reduce((sum, r) => sum + r.analysis.parameterAnalysis.summary.safe, 0);
+    const safeQualityPercent = totalMetalsCount > 0 ? (totalSafeMetals / totalMetalsCount) * 100 : 0;
     
     // Calculate trends for key parameters
     const trends = {};
@@ -423,7 +442,7 @@ export const performComprehensiveAnalysis = (data) => {
     logAnalysis('comprehensive', null, null, 'completed', duration, {
       sampleCount: totalSamples,
       safeCount: safeSamples,
-      unsafeCount: unsafeSamples,
+      warningCount: warningSamples,
       criticalCount: criticalSamples
     });
     
@@ -431,9 +450,9 @@ export const performComprehensiveAnalysis = (data) => {
       summary: {
         totalSamples,
         safeSamples,
-        unsafeSamples,
+        warningSamples,
         criticalSamples,
-        safePercentage: (safeSamples / totalSamples) * 100,
+        safePercentage: safeQualityPercent,
         avgHMPI,
         avgWQI
       },

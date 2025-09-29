@@ -87,7 +87,7 @@ export const errorHandler = (err, req, res, next) => {
   const response = {
     success: false,
     message,
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    ...(process.env.NODE_ENV === 'development' ? { stack: err.stack } : {})
   };
 
   // Add additional error details for specific error types

@@ -22,8 +22,10 @@ router.post('/water-quality-public', uploadSingle('file'), asyncHandler(async (r
   try {
     console.log('Processing file:', file.originalname, 'Type:', file.mimetype);
     
+    // Determine file type from original filename extension (more reliable than MIME type)
+    const ext = path.extname(file.originalname).toLowerCase().replace('.', '');
     // Process the uploaded file
-    const processedData = await processFile(file.path, file.mimetype.split('/')[1]);
+    const processedData = await processFile(file.path, ext);
     
     console.log('Processed data length:', processedData ? processedData.length : 'null');
     
@@ -92,14 +94,17 @@ router.post('/water-quality-public', uploadSingle('file'), asyncHandler(async (r
     
     logFileOperation('process_failed_public', file?.originalname || 'unknown', file?.size || 0, null, false, {
       error: error.message,
+      statusCode: error.statusCode,
       stack: error.stack
     });
     
-    // Return error response instead of throwing
-    return res.status(500).json({
+    // Return error response with appropriate status code if available
+    const statusCode = error.statusCode && Number.isInteger(error.statusCode) ? error.statusCode : 500;
+    const message = error.message || 'File processing failed';
+    return res.status(statusCode).json({
       success: false,
-      message: 'File processing failed',
-      error: error.message
+      message,
+      ...(process.env.NODE_ENV === 'development' ? { stack: error.stack } : {})
     });
   }
 }));
@@ -112,8 +117,10 @@ router.post('/water-quality', authenticate, uploadSingle('file'), asyncHandler(a
   const file = req.file;
   
   try {
+    // Determine file type from original filename extension (more reliable than MIME type)
+    const ext = path.extname(file.originalname).toLowerCase().replace('.', '');
     // Process the uploaded file
-    const processedData = await processFile(file.path, file.mimetype.split('/')[1]);
+    const processedData = await processFile(file.path, ext);
     
     if (!processedData || processedData.length === 0) {
       return res.status(400).json({

@@ -39,7 +39,7 @@ export function MetricCard({
     }
   };
 
-  const config = statusConfig[status];
+  const config = statusConfig[status] || statusConfig.safe;
 
   return (
     <Card className={cn("card-enhanced", config.bg, className)}>

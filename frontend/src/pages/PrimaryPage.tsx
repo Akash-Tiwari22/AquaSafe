@@ -22,9 +22,9 @@ export function PrimaryPage() {
   const { getCurrentData, currentView, setUploadedData, setCurrentView } = useData();
   const currentData = getCurrentData();
 
-  // Function to determine water safety status based on HMPI
+  // Function to determine water safety status based on HMPI (higher = worse)
   const getWaterSafetyStatus = (hmpi: number) => {
-    if (hmpi >= 80) {
+    if (hmpi >= 100) {
       return {
         status: "Critical",
         color: "text-destructive",
@@ -32,7 +32,7 @@ export function PrimaryPage() {
         icon: XCircle,
         description: "Water quality is critically unsafe with high heavy metal contamination"
       };
-    } else if (hmpi >= 60) {
+    } else if (hmpi >= 90) {
       return {
         status: "Unsafe",
         color: "text-warning",
@@ -99,10 +99,19 @@ export function PrimaryPage() {
       setProgress(100);
       
       // Convert backend response to frontend format
+      const a = response.data.analysis || {};
+      const total = a.totalSamples || 0;
+      const safePct = typeof a.safePercentage === 'number' ? a.safePercentage : (total > 0 && typeof a.safeSamples === 'number' ? (a.safeSamples / total) * 100 : 0);
+      const warning = typeof a.warningSamples === 'number' ? a.warningSamples : 0;
+      const critical = typeof a.criticalSamples === 'number' ? a.criticalSamples : 0;
+      const unsafePct = typeof a.unsafeSamples === 'number'
+        ? (total > 0 ? ((a.unsafeSamples + critical) / total) * 100 : 0)
+        : Math.max(0, 100 - safePct);
+
       const waterQualityData: WaterQualityData = {
-        avgHMPI: response.data.analysis.avgHMPI,
-        safeQuality: response.data.analysis.safePercentage,
-        unsafeCritical: ((response.data.analysis.unsafeSamples + response.data.analysis.criticalSamples) / response.data.analysis.totalSamples) * 100,
+        avgHMPI: a.avgHMPI || 0,
+        safeQuality: safePct,
+        unsafeCritical: unsafePct,
         metalConcentrations: {
           arsenic: 0.01, // These would come from the actual analysis
           lead: 0.005,
@@ -110,7 +119,7 @@ export function PrimaryPage() {
           cadmium: 0.002,
           chromium: 0.05
         },
-        sampleCount: response.data.analysis.totalSamples,
+        sampleCount: total,
         lastUpdated: new Date().toISOString(),
         source: 'uploaded',
         dateRange: {

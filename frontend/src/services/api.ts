@@ -1,6 +1,6 @@
 import { WaterQualityData } from '@/contexts/DataContext';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 export interface UploadResponse {
   success: boolean;
@@ -50,11 +50,29 @@ class ApiService {
       const response = await fetch(url, config);
       
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        let message = `HTTP error! status: ${response.status}`;
+        try {
+          const contentType = response.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            const err = await response.json();
+            if (err && typeof err === 'object' && 'message' in err && err.message) {
+              message = err.message as string;
+            }
+          } else {
+            const text = await response.text();
+            if (text) message = text;
+          }
+        } catch {}
+        throw new Error(message);
       }
 
-      return await response.json();
+      const contentType = response.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        return await response.json();
+      }
+      // Fallback for non-JSON successful responses
+      // @ts-expect-error - allow text fallback for generic T
+      return await response.text();
     } catch (error) {
       console.error('API request failed:', error);
       throw error;
@@ -73,8 +91,20 @@ class ApiService {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `Upload failed with status: ${response.status}`);
+      let message = `Upload failed with status: ${response.status}`;
+      try {
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const err = await response.json();
+          if (err && typeof err === 'object' && 'message' in err && err.message) {
+            message = err.message as string;
+          }
+        } else {
+          const text = await response.text();
+          if (text) message = text;
+        }
+      } catch {}
+      throw new Error(message);
     }
 
     return await response.json();
