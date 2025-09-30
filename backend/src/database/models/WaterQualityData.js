@@ -111,62 +111,62 @@ const waterQualityDataSchema = new mongoose.Schema({
     // Heavy metals
     arsenic: {
       value: Number,
-      unit: { type: String, default: 'mg/L' },
-      standard: { type: Number, default: 0.01 },
+      unit: { type: String, default: 'µg/L' },
+      standard: { type: Number, default: 10 },
       status: { type: String, enum: ['safe', 'unsafe', 'critical'], default: 'safe' }
     },
     lead: {
       value: Number,
-      unit: { type: String, default: 'mg/L' },
-      standard: { type: Number, default: 0.01 },
+      unit: { type: String, default: 'µg/L' },
+      standard: { type: Number, default: 10 },
       status: { type: String, enum: ['safe', 'unsafe', 'critical'], default: 'safe' }
     },
     mercury: {
       value: Number,
-      unit: { type: String, default: 'mg/L' },
-      standard: { type: Number, default: 0.001 },
+      unit: { type: String, default: 'µg/L' },
+      standard: { type: Number, default: 1 },
       status: { type: String, enum: ['safe', 'unsafe', 'critical'], default: 'safe' }
     },
     cadmium: {
       value: Number,
-      unit: { type: String, default: 'mg/L' },
-      standard: { type: Number, default: 0.003 },
+      unit: { type: String, default: 'µg/L' },
+      standard: { type: Number, default: 3 },
       status: { type: String, enum: ['safe', 'unsafe', 'critical'], default: 'safe' }
     },
     chromium: {
       value: Number,
-      unit: { type: String, default: 'mg/L' },
-      standard: { type: Number, default: 0.05 },
+      unit: { type: String, default: 'µg/L' },
+      standard: { type: Number, default: 50 },
       status: { type: String, enum: ['safe', 'unsafe', 'critical'], default: 'safe' }
     },
     nickel: {
       value: Number,
-      unit: { type: String, default: 'mg/L' },
-      standard: { type: Number, default: 0.02 },
+      unit: { type: String, default: 'µg/L' },
+      standard: { type: Number, default: 20 },
       status: { type: String, enum: ['safe', 'unsafe', 'critical'], default: 'safe' }
     },
     copper: {
       value: Number,
-      unit: { type: String, default: 'mg/L' },
-      standard: { type: Number, default: 1.0 },
+      unit: { type: String, default: 'µg/L' },
+      standard: { type: Number, default: 1000 },
       status: { type: String, enum: ['safe', 'unsafe', 'critical'], default: 'safe' }
     },
     zinc: {
       value: Number,
-      unit: { type: String, default: 'mg/L' },
-      standard: { type: Number, default: 3.0 },
+      unit: { type: String, default: 'µg/L' },
+      standard: { type: Number, default: 3000 },
       status: { type: String, enum: ['safe', 'unsafe', 'critical'], default: 'safe' }
     },
     iron: {
       value: Number,
-      unit: { type: String, default: 'mg/L' },
-      standard: { type: Number, default: 0.3 },
+      unit: { type: String, default: 'µg/L' },
+      standard: { type: Number, default: 300 },
       status: { type: String, enum: ['safe', 'unsafe', 'critical'], default: 'safe' }
     },
     manganese: {
       value: Number,
-      unit: { type: String, default: 'mg/L' },
-      standard: { type: Number, default: 0.1 },
+      unit: { type: String, default: 'µg/L' },
+      standard: { type: Number, default: 100 },
       status: { type: String, enum: ['safe', 'unsafe', 'critical'], default: 'safe' }
     },
     
@@ -304,6 +304,18 @@ waterQualityDataSchema.virtual('dataCompleteness').get(function() {
 waterQualityDataSchema.pre('save', async function(next) {
   if (this.isModified('parameters')) {
     try {
+      // Normalize heavy metals to µg/L if provided in mg/L
+      const heavyMetals = ['arsenic','lead','mercury','cadmium','chromium','nickel','copper','zinc','iron','manganese'];
+      heavyMetals.forEach((metal) => {
+        const param = this.parameters?.[metal];
+        if (param && typeof param.value === 'number') {
+          // If unit indicates mg/L, convert to µg/L
+          if (param.unit === 'mg/L') {
+            param.value = param.value * 1000;
+            param.unit = 'µg/L';
+          }
+        }
+      });
       await this.calculateMetrics();
     } catch (error) {
       next(error);
